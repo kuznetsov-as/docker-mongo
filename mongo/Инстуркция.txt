@@ -1,0 +1,50 @@
+https://kb.objectrocket.com/mongo-db/use-docker-and-python-for-a-mongodb-application-1046
+
+
+Создаем и запускаем приложение на языке Python с использованием MongoDB.
+
+1) Устанавливаем docker и docker-compose
+sudo apt-get update
+sudo apt-get install docker
+sudo apt-get install docker-compose
+sudo service docker start
+
+2) Создаем файл docker-compose.yml или берем такой файл из архива с этой инструкцией и меняем там:
+context: /home/test/mongo (меняем на путь к папке, где лежит ваш файл docker-compose.yml)
+volumes:
+      - /home/test/mongo/db:/data/db
+      - /home/test/mongo/app:/var/www/html
+меняем /home/test/mongo/db на путь, где у вас будет находится база данных (лучше создать отдельную пустую папку).
+home/anna/mongo/app на путь, где будет находиться .py файл с приложением.
+Так же можно указать другой логин и пароль в MONGO_INITDB_ROOT_USERNAME и MONGO_INITDB_ROOT_PASSWORD, если вам требуется больше безопастности.
+
+3) Теперь создаем Dockerfile, вернее, так же берем его из этого архива, в нем ничего изменять не нужно.
+
+4) Помещаем Dockerfile и docker-compose.yml в одну папку, выполняем команду
+docker-compose up --build
+
+5) Узнаем id контейнера
+docker ps
+
+6) Для приложения нам нужно узнать ip-адрес контейнера, выполняем команду:
+docker inspect {CONTAINER_ID}
+В выводе команды находим строчку:
+"IPAddress": "172.18.0.2"
+
+7) В папку, которую мы создали и указали как место, где лежит .py приложение, переносим файл app.py и меняем в нем:
+DOMAIN = '172.18.0.2' на наш ip-адрес из предыдущего шага.
+username = "root",
+password = "1234", на те, которые мы указали в docker-compose.yml
+
+7) Заходим в контейнер:
+docker exec -it {CONTAINER_ID} /bin/bash
+
+8) Переходим в папку с приложением: 
+cd /var/www/html
+
+9) Запускаем приложение:
+python3 app.py
+
+10) Если вывод содержит в себе строчку 
+databases: ['admin', 'config', 'local']
+вы восхитительны, и создали приложение на языке Python с использованием MongoDB.
